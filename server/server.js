@@ -21,6 +21,23 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json())
 app.use(cookieParser())
 
+//=================
+// Models
+//=================
+const {User} = require('./models/user')
+
+//=================
+// USERS
+//=================
+
+// Register route
+app.post('/api/users/register', (req, res) => {
+    res.status(200)
+})
+
+
+
+
 // Create the server
 const port = process.env.PORT || 3002
 
