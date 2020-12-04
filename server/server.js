@@ -12,7 +12,11 @@ require('dotenv').config()
 
 // Setup mongoose
 mongoose.Promise = global.Promise
-mongoose.connect(process.env.DATABASE)
+mongoose.connect(process.env.DATABASE, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+})
 
 // body and cookie parser middleware
 app.use(bodyParser.urlencoded({
@@ -32,11 +36,21 @@ const {User} = require('./models/user')
 
 // Register route
 app.post('/api/users/register', (req, res) => {
-    res.status(200)
+    const user = new User(req.body)
+
+    user.save((err, doc) => {
+        if (err) {
+            return res.json({
+                success: false,
+                err
+            })
+        }
+        res.status(200).json({
+            success: true,
+            userdata: doc
+        })
+    })
 })
-
-
-
 
 // Create the server
 const port = process.env.PORT || 3002
