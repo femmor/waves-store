@@ -52,6 +52,35 @@ app.post('/api/users/register', (req, res) => {
     })
 })
 
+
+// Register route
+app.post("/api/users/login", (req, res) => {
+    // Find the email
+    User.findOne({'email': req.body.email}, (err, user) => {
+        if(!user) return res.json({ loginSuccess: false, message: "Auth failed, email not found!" })
+        // If email exists grab password and check the password
+        user.comparePassword(req.body.password, (err, isMatch) => {
+            if (!isMatch) return res.json({
+                loginSuccess: false,
+                message:"Wrong password"
+            })
+            // If password and email are correct, generate a new token
+            user.generateToken((err, user) => {
+                if(err) return res.status(400).send(err)
+                // If everything is ok, store as cookie
+                res.cookie('x_auth', user.token).status(200).json({
+                    loginSuccess: true
+                })
+            }) 
+        })
+        
+    })
+    
+    
+
+    
+})
+
 // Create the server
 const port = process.env.PORT || 3002
 

@@ -3,7 +3,11 @@ const mongoose = require('mongoose')
 // Encrypt password string
 const bcrypt = require("bcrypt")
 
+const jwt = require('jsonwebtoken')
+
 const SALT_I = 10;
+
+require('dotenv').config()
 
 const userSchema = mongoose.Schema({
     email: {
@@ -63,6 +67,26 @@ userSchema.pre('save', function(next) {
         
     })
 })
+
+// Method to compare passwords
+userSchema.methods.comparePassword = function(candidatepassword, cb){
+    bcrypt.compare(candidatepassword, this.password, function(err, isMatch) {
+        if (err) return cb(err)
+        cb(null, isMatch)
+    })
+}
+
+// Generate token
+userSchema.methods.generateToken = function(cb){
+    var user = this
+    var token = jwt.sign(user._id.toHexString(), process.env.SECRET)
+
+    user.token = token
+    user.save(function(err, user) {
+        if(err) return cb(err)
+        cb(null, user)
+    })
+}
 
 const User = mongoose.model('User', userSchema)
 
