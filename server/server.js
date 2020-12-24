@@ -41,12 +41,19 @@ const { admin } =  require('./middleware/admin')
 
 
 //=================
-// Products 
+// PRODUCTS 
 //=================
+app.post('/api/product/article', auth, admin, (req, res) => {
+    const product = new Product(req.body)
 
-
-
-
+    product.save((err, doc) => {
+        if(err) return res.json({success: false, err})
+        res.status(200).json({
+            success: true,
+            article: doc
+        })
+    })
+})
 
 //=================
 // WOODS
@@ -73,7 +80,6 @@ app.get("/api/product/woods", (req, res) => {
     })
 })
 
-
 //=================
 // BRANDS
 //=================
@@ -90,7 +96,6 @@ app.post('/api/product/brand', auth, admin, (req, res) => {
         })
     })
 })
-
 
 // Get Brands
 app.get('/api/product/brands', (req, res) => {
@@ -181,10 +186,7 @@ app.get('/api/user/logout', auth, (req, res) => {
         }
     )
 })
-    
-    
 
-    
 })
 
 // Create the server
