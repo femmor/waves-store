@@ -31,19 +31,44 @@ app.use(cookieParser())
 const {User} = require('./models/user')
 
 //=================
+// Middlewares
+//=================
+const { auth } =  require('./middleware/auth')
+
+
+//=================
 // USERS
 //=================
 
+// Auth route
+app.get("/api/users/auth", auth, (req, res) => {
+    // If auth is ok - send some response
+    res.status(200).json({
+        isAdmin: req.user.role === 0 ? false : true,
+        isAuth: true,
+        email: req.user.email,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        role: req.user.role,
+        cart: req.user.cart,
+        history: req.user.history
+    })
+})
+
 // Register route
 app.post('/api/users/register', (req, res) => {
+    // create new user schema
     const user = new User(req.body)
 
+    // Store user in MongoDB
     user.save((err, doc) => {
         if (err) {
+            console.log(err)
             return res.json({
                 success: false,
                 err
             })
+            
         }
         res.status(200).json({
             success: true,
@@ -53,13 +78,14 @@ app.post('/api/users/register', (req, res) => {
 })
 
 
-// Register route
+// Login route
 app.post("/api/users/login", (req, res) => {
-    // Find the email
+    // Find the email in the database
     User.findOne({'email': req.body.email}, (err, user) => {
         if(!user) return res.json({ loginSuccess: false, message: "Auth failed, email not found!" })
         // If email exists grab password and check the password
         user.comparePassword(req.body.password, (err, isMatch) => {
+            // if password does not match with the hashed password
             if (!isMatch) return res.json({
                 loginSuccess: false,
                 message:"Wrong password"
@@ -68,6 +94,7 @@ app.post("/api/users/login", (req, res) => {
             user.generateToken((err, user) => {
                 if(err) return res.status(400).send(err)
                 // If everything is ok, store as cookie
+                // It's safe, once they log out, the cookie becomes invalid
                 res.cookie('x_auth', user.token).status(200).json({
                     loginSuccess: true
                 })
